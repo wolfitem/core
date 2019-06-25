@@ -361,3 +361,39 @@ Feature: Federation Sharing - sharing with users on other cloud storages
     When the user deletes file "textfile.txt" using the webUI
     And using server "LOCAL"
     Then as "user1" file "/simple-folder/simple-empty-folder/textfile.txt" should not exist
+
+  Scenario: remote and local user shares a file with same name to the user (verify local mount is loaded before remote mount)
+    Given user "user2" has been created with default attributes and without skeleton files
+    And user "user2" has uploaded file with content "local content" to "/same-file.txt"
+    And using server "REMOTE"
+    And user "user1" has uploaded file with content "remote content" to "/same-file.txt"
+    And user "user1" has re-logged in to "%remote_server%" using the webUI
+    When the user shares file "same-file.txt" with remote user "user1@%local_server_without_scheme%" using the webUI
+    And user "user1" has re-logged in to "%local_server%" using the webUI
+    And the user accepts the offered remote shares using the webUI
+    And the user has reloaded the current page of the webUI
+    Then file "same-file.txt" should be listed on the webUI
+    And the content of file "/same-file.txt" for user "user1" on server "LOCAL" should be "remote content"
+    When user "user2" has re-logged in to "%local_server%" using the webUI
+    And the user shares file "same-file.txt" with user "User One" using the webUI
+    And user "user1" has re-logged in to "%local_server%" using the webUI
+    Then file "same-file.txt" should be listed on the webUI
+    And file "same-file (2).txt" should be listed on the webUI
+    And the content of file "/same-file.txt" for user "user1" on server "LOCAL" should be "local content"
+    And the content of file "/same-file (2).txt" for user "user1" on server "LOCAL" should be "remote content"
+
+  Scenario: remote and local user shares a file with same name to the user
+    Given user "user2" has been created with default attributes and without skeleton files
+    And user "user2" has uploaded file with content "local content" to "/same-file.txt"
+    And using server "REMOTE"
+    And user "user1" has uploaded file with content "remote content" to "/same-file.txt"
+    And user "user1" has re-logged in to "%remote_server%" using the webUI
+    When the user shares file "same-file.txt" with remote user "user1@%local_server_without_scheme%" using the webUI
+    And user "user2" has re-logged in to "%local_server%" using the webUI
+    And the user shares file "same-file.txt" with user "User One" using the webUI
+    And user "user1" has re-logged in to "%local_server%" using the webUI
+    And the user accepts the offered remote shares using the webUI
+    Then file "same-file.txt" should be listed on the webUI
+    And file "same-file (2).txt" should be listed on the webUI
+    And the content of file "/same-file.txt" for user "user1" on server "LOCAL" should be "local content"
+    And the content of file "/same-file (2).txt" for user "user1" on server "LOCAL" should be "remote content"

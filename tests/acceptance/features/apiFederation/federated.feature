@@ -481,3 +481,27 @@ Feature: federated
       | 1               | 100        |
       | 2               | 200        |
 
+  Scenario: remote and local user shares a file with same name to the user (verify local mount is loaded before remote mount)
+    Given user "user2" has been created with default attributes and without skeleton files
+    And user "user2" has uploaded file with content "local content" to "/same-file.txt"
+    And using server "REMOTE"
+    And user "user0" has uploaded file with content "remote content" to "/same-file.txt"
+    When user "user0" from server "REMOTE" shares "/same-file.txt" with user "user1" from server "LOCAL" using the sharing API
+    And user "user1" from server "LOCAL" has accepted the last pending share
+    Then the content of file "/same-file.txt" for user "user1" on server "LOCAL" should be "remote content"
+    When using server "LOCAL"
+    And user "user2" shares file "/same-file.txt" with user "user1" using the sharing API
+    Then the content of file "/same-file.txt" for user "user1" on server "LOCAL" should be "local content"
+    And the content of file "/same-file (2).txt" for user "user1" on server "LOCAL" should be "remote content"
+
+  Scenario: remote and local user shares a file with same name to the user
+    Given user "user2" has been created with default attributes and without skeleton files
+    And user "user2" has uploaded file with content "local content" to "/same-file.txt"
+    And using server "REMOTE"
+    And user "user0" has uploaded file with content "remote content" to "/same-file.txt"
+    When user "user0" from server "REMOTE" shares "/same-file.txt" with user "user1" from server "LOCAL" using the sharing API
+    And using server "LOCAL"
+    And user "user2" shares file "/same-file.txt" with user "user1" using the sharing API
+    And user "user1" from server "LOCAL" has accepted the last pending share
+    Then the content of file "/same-file.txt" for user "user1" on server "LOCAL" should be "local content"
+    And the content of file "/same-file (2).txt" for user "user1" on server "LOCAL" should be "remote content"
