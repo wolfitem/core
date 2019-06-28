@@ -51,8 +51,11 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Authentication\IApacheBackend;
 use OCP\Authentication\IAuthModule;
 use OCP\Events\EventEmitterTrait;
+use OCP\Files\Folder;
 use OCP\Files\NoReadAccessException;
+use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IConfig;
 use OCP\ILogger;
 use OCP\IRequest;
@@ -444,7 +447,13 @@ class Session implements IUserSession, Emitter {
 
 			try {
 				// copy skeleton
-				\OC_Util::copySkeleton($user, $userFolder);
+				//Set local storage
+				$skeletonDir = $this->config->getSystemValue('skeletondirectory', \OC::$SERVERROOT . '/core/skeleton');
+				$storageArgs = [
+					'datadir' => $skeletonDir
+				];
+				$localStorage = new OC\Files\Storage\Local($storageArgs);
+				$this->copySkeleton($localStorage, $userFolder);
 			} catch (NotPermittedException $ex) {
 				// possible if files directory is in an readonly jail
 				$this->logger->warning(
@@ -458,12 +467,34 @@ class Session implements IUserSession, Emitter {
 			} catch (HintException $hintEx) {
 				// only if Skeleton no existing Dir
 				$this->logger->error($hintEx->getMessage());
+			} catch (StorageNotAvailableException $ex) {
+				$this->logger->warning('Storage not available to copy skeleton');
+			} catch (NotFoundException $ex) {
+				$this->logger->warning('Skeleton files not found.');
 			}
 
 			// trigger any other initialization
 			$this->eventDispatcher->dispatch(IUser::class . '::firstLogin', new GenericEvent($this->getUser()));
 			$this->eventDispatcher->dispatch('user.firstlogin', new GenericEvent($this->getUser()));
 		}
+	}
+
+	/**
+	 * @param \OCP\Files\Storage $sourceStorage
+	 * @param Folder $userFolder
+	 * @throws NotFoundException
+	 * @throws StorageNotAvailableException
+	 */
+	private function copySkeleton(\OCP\Files\Storage $sourceStorage, Folder $userFolder) {
+		$sourceDir = \explode('::', $sourceStorage->getId())[1];
+		$sourceDirHandler = \opendir($sourceDir);
+		while (($file = \readdir($sourceDirHandler)) !== false) {
+			if (!OC\Files\Filesystem::isIgnoredDir($file)) {
+				$userFolder->getStorage()->copyFromStorage($sourceStorage, $file, "files/$file");
+			}
+		}
+
+		$userFolder->getStorage()->getScanner()->scan('', OC\Files\Cache\Scanner::SCAN_RECURSIVE);
 	}
 
 	/**

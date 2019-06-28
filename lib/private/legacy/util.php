@@ -360,6 +360,8 @@ class OC_Util {
 	 * @param String $userId
 	 * @param \OCP\Files\Folder $userDirectory
 	 * @throws \OC\HintException
+	 *
+	 * Note: this has been moved to \OC\User\Session::copySkeleton
 	 */
 	public static function copySkeleton($userId, \OCP\Files\Folder $userDirectory) {
 		$skeletonDirectory = \OC::$server->getConfig()->getSystemValue('skeletondirectory', \OC::$SERVERROOT . '/core/skeleton');
