@@ -97,10 +97,10 @@ $this->create('files_sharing.sharecontroller.showAuthenticate', '/s/{token}/auth
 	$app = new \OCA\Files_Sharing\AppInfo\Application($urlParams);
 	$app->dispatch('ShareController', 'showAuthenticate');
 });
-$this->create('files_sharing.sharecontroller.downloadShare', '/s/{token}/download')->get()->action(function ($urlParams) {
-	$app = new \OCA\Files_Sharing\AppInfo\Application($urlParams);
-	$app->dispatch('ShareController', 'downloadShare');
-});
+//$this->create('files_sharing.sharecontroller.downloadShare', '/s/{token}/download')->get()->action(function ($urlParams) {
+//	$app = new \OCA\Files_Sharing\AppInfo\Application($urlParams);
+//	$app->dispatch('ShareController', 'downloadShare');
+//});
 
 // used for heartbeat
 $this->create('heartbeat', '/heartbeat')->action(function () {
