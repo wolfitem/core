@@ -26,6 +26,12 @@
  *
  */
 
+\header("HTTP/1.0 404 Not Found");
+$tmpl = new OCP\Template('', '404', 'guest');
+$tmpl->assign('file', $filename);
+$tmpl->printPage();
+exit;
+
 // Check if we are a user
 OCP\User::checkLoggedIn();
 
